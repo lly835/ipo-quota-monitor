@@ -1,5 +1,5 @@
 {
-  "rewrites": [
-    { "source": "/api/(.*)", "destination": "/api/$1" }
-  ]
+  "framework": null,
+  "buildCommand": "pip install -r requirements.txt",
+  "outputDirectory": "."
 }

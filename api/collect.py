@@ -14,11 +14,11 @@ from upstash_redis import Redis
 
 API_BASE_URL = "https://backendpro.zr66.com"
 PRIVATE_KEY_B64 = os.environ.get("ZR_PRIVATE_KEY", "MIIBVAIBADANBgkqhkiG9w0BAQEFAASCAT4wggE6AgEAAkEAg8V2L+rhNAdcxt+LbYV4Y9lHDsLqJk7HEuyaAfRqRyZY7gYE6UbxgTHAmbs9PMLIsGyivKO3BLzyw6HzbMgKiwIDAQABAkA5fPyDC0YVHOEtInoB3ikX5sNJfWAKNnRDnVXTZH65ay9fh/1Hwhrc10tnHcj31TykODejvasSWHVXE7Ezq92BAiEA1fYk1SizxFSg2R60dlduagLAAVNrin9qI+xXxnE8MzcCIQCdqU8X1KLpR59MolcAAUfdzkscEzfBOKZCBg3KWx/1TQIhALYvjVVj/w5h8URvfMJ32DC0fsGiQqP/smU8TdFPgi8pAiByNR1YU+4XMozQxKBlHohiwndiRQGUdGbrWNtQhKYn2QIgUv3SsItetsk+J2Whn+dHOHbajPeF2DtZh76YLgtreNg=")
-LOGIN_EMAIL = os.environ.get("ZR_EMAIL", "myuw0856@hotmail.com")
+LOGIN_EMAIL = os.environ.get("ZR_EMAIL", "zxup5809@hotmail.com")
 LOGIN_PASSWORD = os.environ.get("ZR_PASSWORD", "")
-DEVICE_ID = os.environ.get("ZR_DEVICE_ID", "17b080c5756f2ffd")
-DEVICE_NAME = os.environ.get("ZR_DEVICE_NAME", "HONOR-BVL-AN20")
-DEVICE_MODEL = os.environ.get("ZR_DEVICE_MODEL", "BVL-AN20")
+DEVICE_ID = os.environ.get("ZR_DEVICE_ID", "799476863a6d4470")
+DEVICE_NAME = os.environ.get("ZR_DEVICE_NAME", "vivo-V2324HA")
+DEVICE_MODEL = os.environ.get("ZR_DEVICE_MODEL", "V2324HA")
 STOCK_CODE = os.environ.get("ZR_STOCK_CODE", "07666")
 
 UPSTASH_REDIS_REST_URL = os.environ.get("KV_REST_API_URL", "")
