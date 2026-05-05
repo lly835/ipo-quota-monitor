@@ -21,8 +21,8 @@ DEVICE_NAME = os.environ.get("ZR_DEVICE_NAME", "HONOR-BVL-AN20")
 DEVICE_MODEL = os.environ.get("ZR_DEVICE_MODEL", "BVL-AN20")
 STOCK_CODE = os.environ.get("ZR_STOCK_CODE", "07666")
 
-UPSTASH_REDIS_REST_URL = os.environ.get("UPSTASH_REDIS_REST_URL", "")
-UPSTASH_REDIS_REST_TOKEN = os.environ.get("UPSTASH_REDIS_REST_TOKEN", "")
+UPSTASH_REDIS_REST_URL = os.environ.get("KV_REST_API_URL", "")
+UPSTASH_REDIS_REST_TOKEN = os.environ.get("KV_REST_API_TOKEN", "")
 
 
 def sign_request(data, private_key):

@@ -5,8 +5,8 @@ from urllib.parse import urlparse, parse_qs
 
 from upstash_redis import Redis
 
-UPSTASH_REDIS_REST_URL = os.environ.get("UPSTASH_REDIS_REST_URL", "")
-UPSTASH_REDIS_REST_TOKEN = os.environ.get("UPSTASH_REDIS_REST_TOKEN", "")
+UPSTASH_REDIS_REST_URL = os.environ.get("KV_REST_API_URL", "")
+UPSTASH_REDIS_REST_TOKEN = os.environ.get("KV_REST_API_TOKEN", "")
 
 
 class handler(BaseHTTPRequestHandler):
