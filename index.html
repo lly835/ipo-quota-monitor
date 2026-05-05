@@ -1,196 +1,492 @@
+
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>07666 劑泰科技-P 融资额度监控</title>
+    <title>07666 劑泰科技-P · 融资额度监控</title>
     <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #1a1a2e; color: #eee; }
-        .header { padding: 20px 30px; display: flex; justify-content: space-between; align-items: center; }
-        .header h1 { font-size: 22px; color: #00d4aa; }
-        .stats { display: flex; gap: 30px; }
-        .stat-item { text-align: center; }
-        .stat-item .label { font-size: 12px; color: #888; }
-        .stat-item .value { font-size: 18px; font-weight: bold; margin-top: 4px; }
-        .stat-item .value.up { color: #00d4aa; }
-        .stat-item .value.down { color: #ff4757; }
-        #chart { width: 100%; height: calc(100vh - 100px); }
-        .update-time { position: fixed; bottom: 10px; right: 20px; font-size: 12px; color: #666; }
+
+        :root {
+            --bg:           #07091a;
+            --surface:      #0c1028;
+            --surface-2:    #111630;
+            --border:       #182048;
+            --border-hi:    #223070;
+            --fg:           #dde4f0;
+            --muted:        #5b6b8e;
+            --dim:          #2a3860;
+            --accent:       #00d4aa;
+            --accent-dim:   rgba(0, 212, 170, 0.08);
+            --accent-glow:  rgba(0, 212, 170, 0.15);
+            --up:           #00d4aa;
+            --down:         #f04c5f;
+            --up-bg:        rgba(0, 212, 170, 0.06);
+            --down-bg:      rgba(240, 76, 95, 0.06);
+            --font-sans:    -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', system-ui, sans-serif;
+            --font-mono:    'JetBrains Mono', 'IBM Plex Mono', ui-monospace, Menlo, monospace;
+        }
+
+        body {
+            font-family: var(--font-sans);
+            background: var(--bg);
+            color: var(--fg);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            height: 100vh;
+        }
+
+        .accent-bar {
+            height: 2px;
+            background: linear-gradient(90deg, var(--accent) 0%, rgba(0,212,170,0.4) 40%, transparent 70%);
+            flex-shrink: 0;
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 28px;
+            height: 56px;
+            border-bottom: 1px solid var(--border);
+            background: var(--surface);
+            flex-shrink: 0;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .ticker-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 4px 10px;
+            background: var(--accent-dim);
+            border: 1px solid rgba(0, 212, 170, 0.3);
+            border-radius: 3px;
+            font-family: var(--font-mono);
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--accent);
+            letter-spacing: 0.08em;
+        }
+
+        .title-group h1 {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--fg);
+            letter-spacing: -0.01em;
+            line-height: 1.2;
+        }
+
+        .title-group .subtitle {
+            font-size: 10px;
+            color: var(--muted);
+            font-family: var(--font-mono);
+            letter-spacing: 0.05em;
+            margin-top: 2px;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 18px;
+        }
+
+        .live-pill {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-family: var(--font-mono);
+            font-size: 10px;
+            font-weight: 700;
+            color: var(--accent);
+            letter-spacing: 0.12em;
+        }
+
+        .live-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--accent);
+            box-shadow: 0 0 6px var(--accent);
+            animation: pulse 2.4s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; box-shadow: 0 0 6px var(--accent); }
+            50%        { opacity: 0.35; box-shadow: 0 0 2px var(--accent); }
+        }
+
+        .update-label {
+            font-family: var(--font-mono);
+            font-size: 11px;
+            color: var(--muted);
+        }
+
+        .refresh-btn {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            padding: 5px 13px;
+            background: var(--surface-2);
+            border: 1px solid var(--border-hi);
+            border-radius: 4px;
+            color: var(--muted);
+            font-size: 11px;
+            font-family: var(--font-sans);
+            cursor: pointer;
+            transition: color 0.15s, border-color 0.15s, background 0.15s;
+        }
+
+        .refresh-btn:hover {
+            color: var(--accent);
+            border-color: var(--accent);
+            background: var(--accent-dim);
+        }
+
+        .refresh-btn svg { transition: transform 0.3s; }
+        .refresh-btn.spinning svg { animation: spin 0.6s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .stats-bar {
+            display: flex;
+            padding: 14px 28px;
+            gap: 12px;
+            border-bottom: 1px solid var(--border);
+            background: var(--surface);
+            flex-shrink: 0;
+        }
+
+        .stat-card {
+            padding: 12px 18px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 5px;
+            min-width: 200px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 1px;
+            background: var(--border-hi);
+        }
+
+        .stat-card.up-card::before   { background: var(--up); opacity: 0.5; }
+        .stat-card.down-card::before { background: var(--down); opacity: 0.5; }
+
+        .stat-label {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: var(--muted);
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+
+        .stat-value {
+            font-family: var(--font-mono);
+            font-size: 24px;
+            font-weight: 600;
+            color: var(--fg);
+            font-variant-numeric: tabular-nums;
+            letter-spacing: -0.02em;
+            line-height: 1;
+        }
+
+        .stat-value.up   { color: var(--up); }
+        .stat-value.down { color: var(--down); }
+
+        .stat-meta {
+            margin-top: 6px;
+            font-size: 10px;
+            color: var(--dim);
+            font-family: var(--font-mono);
+            letter-spacing: 0.04em;
+        }
+
+        .chart-area {
+            flex: 1;
+            padding: 16px 24px 6px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .chart-toolbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+
+        .chart-legend {
+            display: flex;
+            gap: 18px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            font-size: 11px;
+            color: var(--muted);
+        }
+
+        .legend-line {
+            width: 16px;
+            height: 2px;
+            background: var(--accent);
+            border-radius: 1px;
+        }
+
+        .legend-bar {
+            width: 10px;
+            height: 10px;
+            border-radius: 2px;
+            background: linear-gradient(135deg, var(--up), var(--down));
+            opacity: 0.7;
+        }
+
+        .chart-note {
+            font-size: 10px;
+            color: var(--dim);
+            font-family: var(--font-mono);
+        }
+
+        #chart { flex: 1; }
+
+        .footer {
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 28px;
+            border-top: 1px solid var(--border);
+            background: var(--surface);
+            flex-shrink: 0;
+        }
+
+        .footer-left, .footer-right {
+            font-size: 10px;
+            color: var(--dim);
+            font-family: var(--font-mono);
+            letter-spacing: 0.04em;
+        }
     </style>
 </head>
 <body>
-    <div class="header">
-        <h1>07666 劑泰科技-P 融资额度监控</h1>
-        <div class="stats">
-            <div class="stat-item">
-                <div class="label">当前额度</div>
-                <div class="value" id="current-balance">--</div>
-            </div>
-            <div class="stat-item">
-                <div class="label">最近变化</div>
-                <div class="value" id="current-change">--</div>
-            </div>
+
+<div class="accent-bar"></div>
+
+<header class="header">
+    <div class="header-left">
+        <span class="ticker-badge">07666.HK</span>
+        <div class="title-group">
+            <h1>劑泰科技-P &nbsp;融资额度监控</h1>
+            <div class="subtitle">MARGIN BALANCE MONITOR · HKD</div>
         </div>
     </div>
+    <div class="header-right">
+        <div class="live-pill">
+            <div class="live-dot"></div>
+            LIVE
+        </div>
+        <span id="update-time" class="update-label">—</span>
+        <button class="refresh-btn" id="refresh-btn" onclick="triggerRefresh()">
+            <svg width="11" height="11" viewBox="0 0 11 11" fill="none">
+                <path d="M9.5 5.5a4 4 0 1 1-1.17-2.83" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M8.33 1.5H10V3.17" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            刷新
+        </button>
+    </div>
+</header>
+
+<div class="stats-bar">
+    <div class="stat-card" id="balance-card">
+        <div class="stat-label">当前融资余额</div>
+        <div class="stat-value" id="current-balance">—</div>
+        <div class="stat-meta">CURRENT BALANCE · HKD</div>
+    </div>
+    <div class="stat-card" id="change-card">
+        <div class="stat-label">最近一次变化</div>
+        <div class="stat-value" id="current-change">—</div>
+        <div class="stat-meta">LAST CHANGE · HKD</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">数据区间</div>
+        <div class="stat-value" id="data-range" style="font-size:13px;color:var(--muted)">—</div>
+        <div class="stat-meta">DATE RANGE</div>
+    </div>
+</div>
+
+<main class="chart-area">
+    <div class="chart-toolbar">
+        <div class="chart-legend">
+            <div class="legend-item">
+                <div class="legend-line"></div>
+                <span>融资余额</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-bar"></div>
+                <span>单次变化量</span>
+            </div>
+        </div>
+        <div class="chart-note">拖动底部滚动条缩放时间范围</div>
+    </div>
     <div id="chart"></div>
-    <div class="update-time" id="update-time"></div>
+</main>
 
-    <script>
-        const chart = echarts.init(document.getElementById('chart'));
+<footer class="footer">
+    <div class="footer-left">港交所融资数据 · 自动每30秒刷新</div>
+    <div class="footer-right" id="footer-count">—</div>
+</footer>
 
-        const option = {
-            tooltip: {
-                trigger: 'axis',
-                axisPointer: { type: 'cross' },
-                formatter: function(params) {
-                    let html = params[0].axisValue + '<br/>';
-                    params.forEach(p => {
-                        if (p.seriesName === '融资余额') {
-                            html += p.marker + ' ' + p.seriesName + ': ' + (p.value / 10000).toFixed(2) + ' 万 HKD<br/>';
-                        } else if (p.seriesName === '变化量') {
-                            const color = p.value >= 0 ? '#00d4aa' : '#ff4757';
-                            html += `<span style="color:${color}">` + p.marker + ' ' + p.seriesName + ': ' + (p.value / 10000).toFixed(2) + ' 万 HKD</span><br/>';
-                        }
-                    });
-                    return html;
-                }
+<script>
+    const chart = echarts.init(document.getElementById('chart'), null, { renderer: 'canvas' });
+
+    const COLORS = {
+        accent: '#00d4aa', up: '#00d4aa', down: '#f04c5f',
+        muted: '#5b6b8e', border: '#182048', tooltip: '#0c1028',
+    };
+
+    chart.setOption({
+        backgroundColor: 'transparent',
+        animation: false,
+        tooltip: {
+            trigger: 'axis',
+            axisPointer: {
+                type: 'cross',
+                lineStyle:  { color: 'rgba(0,212,170,0.25)', type: 'dashed', width: 1 },
+                crossStyle: { color: 'rgba(0,212,170,0.25)', width: 1 }
             },
-            legend: {
-                data: ['融资余额', '变化量'],
-                textStyle: { color: '#ccc' },
-                top: 10
-            },
-            grid: [
-                { left: '8%', right: '4%', top: '12%', height: '55%' },
-                { left: '8%', right: '4%', top: '72%', height: '20%' }
-            ],
-            xAxis: [
-                {
-                    type: 'category',
-                    data: [],
-                    gridIndex: 0,
-                    axisLabel: { show: false },
-                    axisLine: { lineStyle: { color: '#333' } }
-                },
-                {
-                    type: 'category',
-                    data: [],
-                    gridIndex: 1,
-                    axisLabel: { color: '#888', fontSize: 10 },
-                    axisLine: { lineStyle: { color: '#333' } }
-                }
-            ],
-            yAxis: [
-                {
-                    type: 'value',
-                    gridIndex: 0,
-                    axisLabel: {
-                        color: '#888',
-                        formatter: function(val) { return (val / 10000).toFixed(0) + '万'; }
-                    },
-                    splitLine: { lineStyle: { color: '#2a2a4a' } }
-                },
-                {
-                    type: 'value',
-                    gridIndex: 1,
-                    axisLabel: {
-                        color: '#888',
-                        formatter: function(val) { return (val / 10000).toFixed(0) + '万'; }
-                    },
-                    splitLine: { lineStyle: { color: '#2a2a4a' } }
-                }
-            ],
-            dataZoom: [
-                { type: 'inside', xAxisIndex: [0, 1], start: 0, end: 100 },
-                { type: 'slider', xAxisIndex: [0, 1], bottom: 5, height: 20, borderColor: '#333', textStyle: { color: '#888' } }
-            ],
-            series: [
-                {
-                    name: '融资余额',
-                    type: 'line',
-                    xAxisIndex: 0,
-                    yAxisIndex: 0,
-                    data: [],
-                    smooth: true,
-                    lineStyle: { color: '#00d4aa', width: 2 },
-                    areaStyle: {
-                        color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-                            { offset: 0, color: 'rgba(0, 212, 170, 0.3)' },
-                            { offset: 1, color: 'rgba(0, 212, 170, 0.02)' }
-                        ])
-                    },
-                    itemStyle: { color: '#00d4aa' }
-                },
-                {
-                    name: '变化量',
-                    type: 'bar',
-                    xAxisIndex: 1,
-                    yAxisIndex: 1,
-                    data: [],
-                    itemStyle: {
-                        color: function(params) {
-                            return params.value >= 0 ? '#00d4aa' : '#ff4757';
-                        }
+            backgroundColor: COLORS.tooltip,
+            borderColor: '#223070',
+            borderWidth: 1,
+            padding: [10, 14],
+            textStyle: { color: '#dde4f0', fontFamily: "'JetBrains Mono', monospace", fontSize: 11 },
+            formatter: function(params) {
+                const time = params[0].axisValue;
+                let rows = `<div style="color:${COLORS.muted};font-size:10px;margin-bottom:8px;letter-spacing:0.04em">${time}</div>`;
+                params.forEach(p => {
+                    if (p.seriesName === '融资余额') {
+                        rows += `<div style="display:flex;align-items:center;gap:10px;margin-bottom:4px">
+                            <span style="display:inline-block;width:14px;height:2px;background:${COLORS.accent};border-radius:1px;flex-shrink:0"></span>
+                            <span style="color:${COLORS.muted};flex:1">余额</span>
+                            <span style="color:#dde4f0;font-weight:600">${(p.value / 10000).toFixed(2)}&nbsp;万</span>
+                        </div>`;
+                    } else if (p.seriesName === '变化量') {
+                        const c = p.value >= 0 ? COLORS.up : COLORS.down;
+                        const sign = p.value >= 0 ? '+' : '';
+                        rows += `<div style="display:flex;align-items:center;gap:10px">
+                            <span style="display:inline-block;width:8px;height:8px;background:${c};border-radius:2px;opacity:.8;flex-shrink:0"></span>
+                            <span style="color:${COLORS.muted};flex:1">变化</span>
+                            <span style="color:${c};font-weight:600">${sign}${(p.value / 10000).toFixed(2)}&nbsp;万</span>
+                        </div>`;
                     }
-                }
-            ]
-        };
-
-        chart.setOption(option);
-        window.addEventListener('resize', () => chart.resize());
-
-        function formatTime(ts) {
-            const d = new Date(ts);
-            return d.getHours().toString().padStart(2,'0') + ':' + d.getMinutes().toString().padStart(2,'0');
-        }
-
-        function formatBalance(val) {
-            if (val >= 100000000) return (val / 100000000).toFixed(2) + ' 亿';
-            if (val >= 10000) return (val / 10000).toFixed(0) + ' 万';
-            return val.toFixed(0);
-        }
-
-        async function fetchData() {
-            try {
-                const res = await fetch('/api/data?limit=500');
-                const json = await res.json();
-                const data = json.data;
-
-                if (!data || data.length === 0) return;
-
-                const times = data.map(d => formatTime(d.timestamp));
-                const balances = data.map(d => d.balance);
-                const changes = data.map(d => d.change_amount || 0);
-
-                chart.setOption({
-                    xAxis: [
-                        { data: times },
-                        { data: times }
-                    ],
-                    series: [
-                        { data: balances },
-                        { data: changes }
-                    ]
                 });
-
-                const latest = data[data.length - 1];
-                document.getElementById('current-balance').textContent = formatBalance(latest.balance) + ' HKD';
-
-                const changeEl = document.getElementById('current-change');
-                const change = latest.change_amount || 0;
-                changeEl.textContent = (change >= 0 ? '+' : '') + formatBalance(Math.abs(change));
-                changeEl.className = 'value ' + (change >= 0 ? 'up' : 'down');
-
-                document.getElementById('update-time').textContent = '最后更新: ' + latest.timestamp;
-            } catch (e) {
-                console.error('Fetch error:', e);
+                return rows;
             }
-        }
+        },
+        legend: { show: false },
+        grid: [
+            { left: '6%', right: '1.5%', top: '4%',  height: '54%' },
+            { left: '6%', right: '1.5%', top: '66%', height: '20%' }
+        ],
+        xAxis: [
+            { type: 'category', data: [], gridIndex: 0, axisLabel: { show: false }, axisLine: { lineStyle: { color: COLORS.border } }, axisTick: { show: false }, splitLine: { show: false } },
+            { type: 'category', data: [], gridIndex: 1, axisLabel: { color: COLORS.muted, fontSize: 10, fontFamily: "'JetBrains Mono', monospace" }, axisLine: { lineStyle: { color: COLORS.border } }, axisTick: { lineStyle: { color: COLORS.border } }, splitLine: { show: false } }
+        ],
+        yAxis: [
+            { type: 'value', gridIndex: 0, axisLabel: { color: COLORS.muted, fontSize: 10, fontFamily: "'JetBrains Mono', monospace", formatter: v => (v / 10000).toFixed(0) + '万' }, axisLine: { show: false }, axisTick: { show: false }, splitLine: { lineStyle: { color: COLORS.border, type: 'dashed', opacity: 0.6 } } },
+            { type: 'value', gridIndex: 1, axisLabel: { color: COLORS.muted, fontSize: 10, fontFamily: "'JetBrains Mono', monospace", formatter: v => (v / 10000).toFixed(0) + '万' }, axisLine: { show: false }, axisTick: { show: false }, splitLine: { lineStyle: { color: COLORS.border, type: 'dashed', opacity: 0.6 } } }
+        ],
+        dataZoom: [
+            { type: 'inside', xAxisIndex: [0, 1], start: 0, end: 100 },
+            { type: 'slider', xAxisIndex: [0, 1], bottom: 2, height: 16, borderColor: COLORS.border, backgroundColor: 'rgba(12,16,40,0.6)', fillerColor: 'rgba(0,212,170,0.07)', handleStyle: { color: COLORS.accent, borderColor: COLORS.accent }, textStyle: { color: COLORS.muted, fontSize: 10, fontFamily: "'JetBrains Mono', monospace" }, dataBackground: { lineStyle: { color: COLORS.border }, areaStyle: { color: 'rgba(0,212,170,0.03)' } }, selectedDataBackground: { lineStyle: { color: COLORS.accent, opacity: 0.4 }, areaStyle: { color: 'rgba(0,212,170,0.06)' } } }
+        ],
+        series: [
+            { name: '融资余额', type: 'line', xAxisIndex: 0, yAxisIndex: 0, data: [], smooth: 0.3, symbol: 'none', lineStyle: { color: COLORS.accent, width: 1.5 }, areaStyle: { color: { type: 'linear', x: 0, y: 0, x2: 0, y2: 1, colorStops: [{ offset: 0, color: 'rgba(0,212,170,0.18)' }, { offset: 0.6, color: 'rgba(0,212,170,0.04)' }, { offset: 1, color: 'rgba(0,212,170,0)' }] } } },
+            { name: '变化量', type: 'bar', xAxisIndex: 1, yAxisIndex: 1, data: [], barMaxWidth: 6, itemStyle: { color: p => p.value >= 0 ? 'rgba(0,212,170,0.75)' : 'rgba(240,76,95,0.75)', borderRadius: [2, 2, 0, 0] } }
+        ]
+    });
 
-        fetchData();
-        setInterval(fetchData, 30000);
-    </script>
+    window.addEventListener('resize', () => chart.resize());
+
+    function formatTime(ts) {
+        const d = new Date(ts);
+        return d.getHours().toString().padStart(2,'0') + ':' + d.getMinutes().toString().padStart(2,'0');
+    }
+
+    function formatBalance(val) {
+        const abs = Math.abs(val);
+        if (abs >= 100000000) return (val / 100000000).toFixed(2) + ' 亿';
+        if (abs >= 10000)     return (val / 10000).toFixed(0) + ' 万';
+        return val.toFixed(0);
+    }
+
+    function formatDateRange(d) {
+        return `${d.getMonth()+1}/${d.getDate()} ${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}`;
+    }
+
+    async function fetchData() {
+        try {
+            const res  = await fetch('/api/data?limit=500');
+            const json = await res.json();
+            const data = json.data;
+            if (!data || data.length === 0) return;
+
+            const times    = data.map(d => formatTime(d.timestamp));
+            const balances = data.map(d => d.balance);
+            const changes  = data.map(d => d.change_amount || 0);
+
+            chart.setOption({ xAxis: [{ data: times }, { data: times }], series: [{ data: balances }, { data: changes }] });
+
+            const latest = data[data.length - 1];
+            document.getElementById('current-balance').textContent = formatBalance(latest.balance) + ' HKD';
+
+            const changeEl = document.getElementById('current-change');
+            const change   = latest.change_amount || 0;
+            changeEl.textContent = (change >= 0 ? '+' : '−') + formatBalance(Math.abs(change)) + ' HKD';
+            changeEl.className   = 'stat-value ' + (change >= 0 ? 'up' : 'down');
+
+            document.getElementById('change-card').classList.remove('up-card','down-card');
+            document.getElementById('change-card').classList.add(change >= 0 ? 'up-card' : 'down-card');
+
+            if (data.length > 1) {
+                const rangeEl = document.getElementById('data-range');
+                rangeEl.textContent     = formatDateRange(new Date(data[0].timestamp)) + ' → ' + formatDateRange(new Date(data[data.length-1].timestamp));
+                rangeEl.style.fontSize  = '11px';
+                rangeEl.style.color     = 'var(--fg)';
+            }
+
+            const now = new Date();
+            document.getElementById('update-time').textContent  = '更新于 ' + now.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            document.getElementById('footer-count').textContent = `共 ${data.length} 条记录`;
+        } catch (e) {
+            console.error('Fetch error:', e);
+        }
+    }
+
+    function triggerRefresh() {
+        const btn = document.getElementById('refresh-btn');
+        btn.classList.add('spinning');
+        fetchData().finally(() => setTimeout(() => btn.classList.remove('spinning'), 400));
+    }
+
+    fetchData();
+    setInterval(fetchData, 30000);
+</script>
 </body>
 </html>
