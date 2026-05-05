@@ -11,6 +11,8 @@ from cryptography.hazmat.primitives.asymmetric import padding
 from cryptography.hazmat.backends import default_backend
 from upstash_redis import Redis
 from fastapi import FastAPI, Query
+from fastapi.responses import HTMLResponse
+from pathlib import Path
 
 API_BASE_URL = "https://backendpro.zr66.com"
 PRIVATE_KEY_B64 = os.environ.get("ZR_PRIVATE_KEY", "MIIBVAIBADANBgkqhkiG9w0BAQEFAASCAT4wggE6AgEAAkEAg8V2L+rhNAdcxt+LbYV4Y9lHDsLqJk7HEuyaAfRqRyZY7gYE6UbxgTHAmbs9PMLIsGyivKO3BLzyw6HzbMgKiwIDAQABAkA5fPyDC0YVHOEtInoB3ikX5sNJfWAKNnRDnVXTZH65ay9fh/1Hwhrc10tnHcj31TykODejvasSWHVXE7Ezq92BAiEA1fYk1SizxFSg2R60dlduagLAAVNrin9qI+xXxnE8MzcCIQCdqU8X1KLpR59MolcAAUfdzkscEzfBOKZCBg3KWx/1TQIhALYvjVVj/w5h8URvfMJ32DC0fsGiQqP/smU8TdFPgi8pAiByNR1YU+4XMozQxKBlHohiwndiRQGUdGbrWNtQhKYn2QIgUv3SsItetsk+J2Whn+dHOHbajPeF2DtZh76YLgtreNg=")
@@ -25,6 +27,13 @@ KV_REST_API_URL = os.environ.get("KV_REST_API_URL", "")
 KV_REST_API_TOKEN = os.environ.get("KV_REST_API_TOKEN", "")
 
 app = FastAPI()
+
+HTML_PATH = Path(__file__).parent.parent / "index.html"
+
+
+@app.get("/", response_class=HTMLResponse)
+def homepage():
+    return HTML_PATH.read_text(encoding="utf-8")
 
 
 def get_redis():
