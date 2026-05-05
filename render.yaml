@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: ipo-quota-monitor
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: ZR_PASSWORD
+        sync: false
+      - key: ZR_EMAIL
+        value: myuw0856@hotmail.com
+      - key: ZR_DEVICE_ID
+        value: 17b080c5756f2ffd
+      - key: ZR_DEVICE_NAME
+        value: HONOR-BVL-AN20
+      - key: ZR_DEVICE_MODEL
+        value: BVL-AN20
+      - key: ZR_STOCK_CODE
+        value: "07666"
+      - key: PYTHON_VERSION
+        value: "3.12.0"
