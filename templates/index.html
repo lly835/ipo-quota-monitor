@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>07666 劑泰科技-P 融资额度监控</title>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #1a1a2e; color: #eee; }
+        .header { padding: 20px 30px; display: flex; justify-content: space-between; align-items: center; }
+        .header h1 { font-size: 22px; color: #00d4aa; }
+        .stats { display: flex; gap: 30px; }
+        .stat-item { text-align: center; }
+        .stat-item .label { font-size: 12px; color: #888; }
+        .stat-item .value { font-size: 18px; font-weight: bold; margin-top: 4px; }
+        .stat-item .value.up { color: #00d4aa; }
+        .stat-item .value.down { color: #ff4757; }
+        #chart { width: 100%; height: calc(100vh - 100px); }
+        .update-time { position: fixed; bottom: 10px; right: 20px; font-size: 12px; color: #666; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>07666 劑泰科技-P 融资额度监控</h1>
+        <div class="stats">
+            <div class="stat-item">
+                <div class="label">当前额度</div>
+                <div class="value" id="current-balance">--</div>
+            </div>
+            <div class="stat-item">
+                <div class="label">最近变化</div>
+                <div class="value" id="current-change">--</div>
+            </div>
+        </div>
+    </div>
+    <div id="chart"></div>
+    <div class="update-time" id="update-time"></div>
+
+    <script>
+        const chart = echarts.init(document.getElementById('chart'));
+
+        const option = {
+            tooltip: {
+                trigger: 'axis',
+                axisPointer: { type: 'cross' },
+                formatter: function(params) {
+                    let html = params[0].axisValue + '<br/>';
+                    params.forEach(p => {
+                        if (p.seriesName === '融资余额') {
+                            html += p.marker + ' ' + p.seriesName + ': ' + (p.value / 10000).toFixed(2) + ' 万 HKD<br/>';
+                        } else if (p.seriesName === '变化量') {
+                            const color = p.value >= 0 ? '#00d4aa' : '#ff4757';
+                            html += `<span style="color:${color}">` + p.marker + ' ' + p.seriesName + ': ' + (p.value / 10000).toFixed(2) + ' 万 HKD</span><br/>';
+                        }
+                    });
+                    return html;
+                }
+            },
+            legend: {
+                data: ['融资余额', '变化量'],
+                textStyle: { color: '#ccc' },
+                top: 10
+            },
+            grid: [
+                { left: '8%', right: '4%', top: '12%', height: '55%' },
+                { left: '8%', right: '4%', top: '72%', height: '20%' }
+            ],
+            xAxis: [
+                {
+                    type: 'category',
+                    data: [],
+                    gridIndex: 0,
+                    axisLabel: { show: false },
+                    axisLine: { lineStyle: { color: '#333' } }
+                },
+                {
+                    type: 'category',
+                    data: [],
+                    gridIndex: 1,
+                    axisLabel: { color: '#888', fontSize: 10 },
+                    axisLine: { lineStyle: { color: '#333' } }
+                }
+            ],
+            yAxis: [
+                {
+                    type: 'value',
+                    gridIndex: 0,
+                    axisLabel: {
+                        color: '#888',
+                        formatter: function(val) { return (val / 10000).toFixed(0) + '万'; }
+                    },
+                    splitLine: { lineStyle: { color: '#2a2a4a' } }
+                },
+                {
+                    type: 'value',
+                    gridIndex: 1,
+                    axisLabel: {
+                        color: '#888',
+                        formatter: function(val) { return (val / 10000).toFixed(0) + '万'; }
+                    },
+                    splitLine: { lineStyle: { color: '#2a2a4a' } }
+                }
+            ],
+            dataZoom: [
+                { type: 'inside', xAxisIndex: [0, 1], start: 0, end: 100 },
+                { type: 'slider', xAxisIndex: [0, 1], bottom: 5, height: 20, borderColor: '#333', textStyle: { color: '#888' } }
+            ],
+            series: [
+                {
+                    name: '融资余额',
+                    type: 'line',
+                    xAxisIndex: 0,
+                    yAxisIndex: 0,
+                    data: [],
+                    smooth: true,
+                    lineStyle: { color: '#00d4aa', width: 2 },
+                    areaStyle: {
+                        color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                            { offset: 0, color: 'rgba(0, 212, 170, 0.3)' },
+                            { offset: 1, color: 'rgba(0, 212, 170, 0.02)' }
+                        ])
+                    },
+                    itemStyle: { color: '#00d4aa' }
+                },
+                {
+                    name: '变化量',
+                    type: 'bar',
+                    xAxisIndex: 1,
+                    yAxisIndex: 1,
+                    data: [],
+                    itemStyle: {
+                        color: function(params) {
+                            return params.value >= 0 ? '#00d4aa' : '#ff4757';
+                        }
+                    }
+                }
+            ]
+        };
+
+        chart.setOption(option);
+        window.addEventListener('resize', () => chart.resize());
+
+        function formatTime(ts) {
+            const d = new Date(ts);
+            return d.getHours().toString().padStart(2,'0') + ':' + d.getMinutes().toString().padStart(2,'0');
+        }
+
+        function formatBalance(val) {
+            if (val >= 100000000) return (val / 100000000).toFixed(2) + ' 亿';
+            if (val >= 10000) return (val / 10000).toFixed(0) + ' 万';
+            return val.toFixed(0);
+        }
+
+        async function fetchData() {
+            try {
+                const res = await fetch('/api/data?limit=500');
+                const json = await res.json();
+                const data = json.data;
+
+                if (!data || data.length === 0) return;
+
+                const times = data.map(d => formatTime(d.timestamp));
+                const balances = data.map(d => d.balance);
+                const changes = data.map(d => d.change_amount || 0);
+
+                chart.setOption({
+                    xAxis: [
+                        { data: times },
+                        { data: times }
+                    ],
+                    series: [
+                        { data: balances },
+                        { data: changes }
+                    ]
+                });
+
+                const latest = data[data.length - 1];
+                document.getElementById('current-balance').textContent = formatBalance(latest.balance) + ' HKD';
+
+                const changeEl = document.getElementById('current-change');
+                const change = latest.change_amount || 0;
+                changeEl.textContent = (change >= 0 ? '+' : '') + formatBalance(Math.abs(change));
+                changeEl.className = 'value ' + (change >= 0 ? 'up' : 'down');
+
+                document.getElementById('update-time').textContent = '最后更新: ' + latest.timestamp;
+            } catch (e) {
+                console.error('Fetch error:', e);
+            }
+        }
+
+        fetchData();
+        setInterval(fetchData, 30000);
+    </script>
+</body>
+</html>
