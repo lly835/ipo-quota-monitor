@@ -3,7 +3,7 @@ import json
 import time
 import base64
 import hashlib
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 
 import requests as http_requests
 from cryptography.hazmat.primitives import hashes, serialization
@@ -85,7 +85,7 @@ def collect():
             if ipo.get('code') == STOCK_CODE:
                 balance = float(ipo.get('compFinancingBalance', 0))
                 stop_flag = str(ipo.get('stopFinancingFlag', ''))
-                now = datetime.now().isoformat()
+                now = datetime.now(timezone(timedelta(hours=8))).strftime("%Y-%m-%d %H:%M:%S")
 
                 redis = get_redis()
                 last = redis.lindex("quota:history", -1)
